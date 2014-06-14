@@ -1,28 +1,58 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+
 /**
  * Classe usada para fazer a leitura das seleções de arquivos texto
  */
 public class LeitorSelecoes {
+    private String arquivo;
+    private Scanner fonteDados;
 
-	/*
-	 * TODO este método é mandatório e você pode incluir outros se achar que deve.
-	 * Deve ser feita a leitura de um arquivo texto e retornada um objeto do tipo
-	 * Selecao com a seleção representada no arquivo. Lembre-se de fechar o arquivo ao final da leitura.
-	 * Caso o arquivo não exista, dispare uma exceção da classe CopaException, com 
-	 * o tipo ARQUIVO_SELECAO_NAO_EXISTE e mensagem "Arquivo de selecao ARQUIVO nao existe",
-	 * onde ARQUIVO é o nome do arquivo.
-	 * 
-	 * O formato do arquivo é o seguinte:
-	 * - Na primeira linha, há o código do país da seleção, o mesmo usado na enumeração Pais.
-	 * - Cada uma das linhas seguintes possui a descrição de um participante. Sendo NOME o nome do
-	 * participante, NUMERO o número do jogador e TIPO o tipo do jogador, as linhas tem o seguinte formato
-	 * (sempre sem as aspas):
-	 * 1) Se o participante for um técnico: "Tecnico;NOME"
-	 * 2) Se o participante for um jogador goleiro: "Goleiro;NOME;NUMERO"
-	 * 3) Se o participante for um jogador defensor: "Defensor;NOME;NUMERO"
-	 * 4) Se o participante for um jogador meia: "Meia;NOME;NUMERO"
-	 * 5) Se o participante for um jogador atacante: "Atacante;NOME;NUMERO"
-	 */
-	public static Selecao lerSelecao(String arquivo) throws CopaException {
-	}
+    public LeitorSelecoes(String arquivo) {
+        this.arquivo = arquivo;
+    }
+
+    public void abreArquivo() throws CopaException {
+        try {
+            File arq = new File(arquivo);
+            if (!arq.isFile()) {
+                throw new FileNotFoundException();
+            }
+            this.fonteDados = new Scanner(arq);
+        } catch (FileNotFoundException e) {
+            throw new CopaException(CopaException.Tipo.ARQUIVO_SELECAO_NAO_EXISTE, "Arquivo de selecao " + arquivo + " nao existe");
+        }
+
+    }
+
+    public void fechaArquivo() {
+        this.fonteDados.close();
+    }
+
+    public static Selecao lerSelecao(String arquivo) throws CopaException {
+        ArrayList<Participante> participantes = new ArrayList<Participante>();
+        LeitorSelecoes leitor = new LeitorSelecoes(arquivo);
+        leitor.abreArquivo();
+        String codigo = leitor.fonteDados.nextLine();
+        while (leitor.fonteDados.hasNextLine()) {
+            String linha = leitor.fonteDados.nextLine();
+            String vetor[] = linha.split(";");
+            if (vetor[0].equals("Tecnico")) {
+                participantes.add(new Tecnico(vetor[1]));
+            } else if (vetor[0].equals("Goleiro")) {
+                participantes.add(new Goleiro(vetor[1], Integer.parseInt(vetor[2])));
+            } else if (vetor[0].equals("Defensor")) {
+                participantes.add(new Defensor(vetor[1], Integer.parseInt(vetor[2])));
+            } else if (vetor[0].equals("Meia")) {
+                participantes.add(new Meia(vetor[1], Integer.parseInt(vetor[2])));
+            } else if (vetor[0].equals("Atacante")) {
+                participantes.add(new Atacante(vetor[1], Integer.parseInt(vetor[2])));
+            }
+        }
+        return new Selecao(Pais.getByCodigo(codigo), participantes);
+
+
+    }
 
 }

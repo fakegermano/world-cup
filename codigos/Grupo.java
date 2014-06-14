@@ -3,76 +3,102 @@ import java.util.List;
 
 /**
  * Esta classe representa um grupo da primeira fase.
- *
  */
 public class Grupo {
 
-	/**
-	 * Nome do grupo
-	 */
-	private String nome;
-	
-	/**
-	 * Seleções neste grupo
-	 */
-	private List<Selecao> selecoes;
-	
-	/**
-	 * Jogos neste grupo.
-	 */
-	private List<Jogo> jogos;
-	
-	// TODO contrutor, inicializar variáveis internas
-	public Grupo(String nome) {
-	}
-	
-	// TODO adicionar seleção a este grupo
-	public void adicionaSelecao(Selecao selecao) {
-	}
-	
-	// TODO retornar o nome deste grupo
-	public String getNome() {
-	}
-	
-	// TODO retornar seleções deste grupo, na ordem que foram adicionadas
-	public List<Selecao> getSelecoes() {
-	}
-	// TODO adicionar jogo a este grupo
-	// Se pelo menos uma das seleções do jogo não estiver presente no
-	// grupo, deve disparar nova exceção CopaException com o tipo JOGO_COM_SELECAO_INVALIDA
-	// e mensagem "Selecao nao presente no grupo"
-	public void adicionaJogo(Jogo jogo) throws CopaException {
-	}
+    /**
+     * Nome do grupo
+     */
+    private String nome;
 
-	// TODO Adicionar gol a um jogo deste grupo
-	
-	// Se pelo menos uma das seleções do gol não estiver presente no
-	// grupo, deve disparar nova exceção CopaException com o tipo SELECOES_GOL_NAO_PRESENTES_GRUPO
-	// e mensagem "Uma das selecoes indicadas nao pertence a este grupo"
-	
-	// Se as seleções estiverem presentes, mas não houver nenhum jogo cadastrado para elas,
-	// deve disparar nova exceção CopaException com o tipo NENHUM_JOGO_COM_SELECOES_GOL
-	// e mensagem "Nenhum jogo com as selecoes indicadas"
-	
-	// Assuma que no máximo há um jogo para cada par de seleções do grupo
-	public void adicionaGol(Gol gol) throws CopaException {
-	}
-	
-	// TODO retornar número de jogos
-	public int getNumeroJogos() {
-	}
+    /**
+     * Seleções neste grupo
+     */
+    private List<Selecao> selecoes;
 
-	// TODO retornar uma String com o placar do i-ésimo jogo presente
-	// neste grupo (0 <= i < getNumeroJogos())
-	
-	// O formato do retorno é "SL1 PL1 X PL2 SL2"
-	// Onde SL1 e PL1 são o código do país da seleção 1 e gols da seleção 1, respectivamente
-	// e PL2 e SL2 são o código do país da seleção 2 e gols da seleção 2, respectivamente
-	
-	// A seleção 1 (a que aparece primeiro no placar) deve ser a que ganhou o jogo
-	// Em caso de empate, a primeira a ser exibida deve ser a que possuir o menor código
-	// do país correspondente, em ordem lexicográfica
-	public String getPlacarJogo(int i) {
-	}
-	
+    /**
+     * Jogos neste grupo.
+     */
+    private List<Jogo> jogos;
+
+    public Grupo(String nome) {
+        this.nome = nome;
+        this.selecoes = new ArrayList<Selecao>();
+        this.jogos = new ArrayList<Jogo>();
+    }
+
+    public void adicionaSelecao(Selecao selecao) {
+        this.getSelecoes().add(selecao);
+    }
+
+    public String getNome() {
+        return this.nome;
+    }
+
+    public List<Selecao> getSelecoes() {
+        return this.selecoes;
+    }
+
+    public void adicionaJogo(Jogo jogo) throws CopaException {
+        if (!this.getSelecoes().contains(jogo.getSelecao1()) || !this.getSelecoes().contains(jogo.getSelecao2())) {
+            throw new CopaException(CopaException.Tipo.JOGO_COM_SELECAO_INVALIDA, "Selecao nao presente no grupo");
+        } else {
+            jogos.add(jogo);
+        }
+    }
+
+    public void adicionaGol(Gol gol) throws CopaException {
+        if (!this.getSelecoes().contains(gol.getSelecao1()) || !this.getSelecoes().contains(gol.getSelecao2())) {
+            throw new CopaException(CopaException.Tipo.SELECOES_GOL_NAO_PRESENTES_GRUPO, "Uma das selecoes indicadas nao pertence a este grupo");
+        } else {
+            boolean found = false;
+            for (Jogo j : this.jogos) {
+                if ((j.getSelecao1().equals(gol.getSelecao1()) && j.getSelecao2().equals(gol.getSelecao2()))
+                        ||(j.getSelecao1().equals(gol.getSelecao2()) && j.getSelecao2().equals(gol.getSelecao1()))) {
+                    found = true;
+                    j.adicionaGol(gol);
+                }
+            }
+            if (!found) {
+                throw new CopaException(CopaException.Tipo.NENHUM_JOGO_COM_SELECOES_GOL, "Nenhum jogo com as selecoes indicadas");
+            }
+
+        }
+    }
+
+    public int getNumeroJogos() {
+        return this.jogos.size();
+    }
+
+    public String getPlacarJogo(int i) {
+        Jogo atual = this.jogos.get(i);
+        Selecao selecao1 = atual.getSelecao1();
+        Selecao selecao2 = atual.getSelecao2();
+        int golsSelecao1 = 0, golsSelecao2 = 0;
+        for (Gol gol : atual.getGols()) {
+            if (gol.contra() && gol.getSelecao2().equals(selecao1)) {
+                golsSelecao1++;
+            } else if (gol.contra() && gol.getSelecao2().equals(selecao2)) {
+                golsSelecao2++;
+            } else if (!gol.contra() && gol.getSelecao1().equals(selecao1)) {
+                golsSelecao1++;
+            } else if (!gol.contra() && gol.getSelecao1().equals(selecao2)) {
+                golsSelecao2++;
+            }
+        }
+        if (golsSelecao1 > golsSelecao2) {
+            return (atual.getSelecao1().getPais().getCodigo() + " " + golsSelecao1 + " X " +
+                    golsSelecao2 + " " + atual.getSelecao2().getPais().getCodigo());
+        } else if (golsSelecao2 > golsSelecao1) {
+            return (atual.getSelecao2().getPais().getCodigo() + " " + golsSelecao2 + " X " +
+                    golsSelecao1 + " " + atual.getSelecao1().getPais().getCodigo());
+        } else if (atual.getSelecao1().getPais().getCodigo().compareTo(atual.getSelecao2().getPais().getCodigo()) < 0) {
+            return (atual.getSelecao1().getPais().getCodigo() + " " + golsSelecao1 + " X " +
+                    golsSelecao2 + " " + atual.getSelecao2().getPais().getCodigo());
+        } else {
+            return (atual.getSelecao2().getPais().getCodigo() + " " + golsSelecao2 + " X " +
+                    golsSelecao1 + " " + atual.getSelecao1().getPais().getCodigo());
+        }
+
+    }
 }

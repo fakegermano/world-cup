@@ -2,16 +2,26 @@
 /**
  * Classe que representa um participante do tipo técnico
  */
- // TODO colocar herança de Participante
-public class Tecnico {
+public class Tecnico extends Participante {
 
-	// TODO implementar construtor
-	public Tecnico(String nome) {
-	}
+    /**
+     * @param nome
+     */
+    public Tecnico(String nome) {
+        super(nome);
+    }
 
-	@Override
-	public String toString() {
-		return "TEC:" + getNome();
-	}
-	
+    @Override
+    public String toString() {
+        return "TEC:" + getNome();
+    }
+
+    @Override
+    public int compareTo(Participante o) {
+        if (o instanceof Jogador) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
 }
